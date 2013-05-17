@@ -166,7 +166,7 @@ void comp_lld_start(COMPDriver *compdp) {
   }
 
   /* COMP configuration.*/
-  compdp->comp->CSR |=
+  compdp->comp->CSR =
     compdp->config->comp_enable              |
     (compdp->config->comp1_inv_in_src <<  4) |
     (compdp->config->comp2_inv_in_src << 20) |
