@@ -24,7 +24,20 @@
 
 #include "ch.h"
 #include "hal.h"
-
+#define USE_RS485_RE_KLUDGE
+#ifdef USE_RS485_RE_KLUDGE
+static void RS485_RE_Enable(uint8_t enable)
+{
+	if (enable)
+	{
+        palClearPad(RS485_RE_PORT, RS485_RE_PIN);
+	}
+	else
+	{
+        palSetPad(RS485_RE_PORT, RS485_RE_PIN);
+	}
+}
+#endif
 #if HAL_USE_SERIAL || defined(__DOXYGEN__)
 
 /*===========================================================================*/
@@ -178,15 +191,35 @@ static void serve_interrupt(SerialDriver *sdp) {
       u->CR1 = (cr1 & ~USART_CR1_TXEIE) | USART_CR1_TCIE;
     }
     else
+    {
+#ifdef USE_RS485_RE_KLUDGE
+      /* RS485 RE Kludge:
+       * Turn off RE when output queue is not empty
+       */
+    	RS485_RE_Enable(0);
+#endif
       u->TDR = b;
+
+    }
     chSysUnlockFromIsr();
   }
   /* Physical transmission end.*/
   if (isr & USART_ISR_TC) {
     chSysLockFromIsr();
     chnAddFlagsI(sdp, CHN_TRANSMISSION_END);
+#ifdef USE_RS485_RE_KLUDGE
+    /* RS485 RE Kludge:
+     * Turn on RE when output queue is empty */
+    if (chOQIsEmptyI(&sdp->oqueue))
+    {
+    	RS485_RE_Enable(1);
+    }
+#endif
+
     chSysUnlockFromIsr();
     u->CR1 = cr1 & ~USART_CR1_TCIE;
+
+
   }
 }
 

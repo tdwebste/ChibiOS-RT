@@ -221,15 +221,15 @@ typedef struct {
   /**
    * @brief Initialization value for the CR1 register.
    */
-  uint16_t                  sc_cr1;
+  uint32_t                  sc_cr1;
   /**
    * @brief Initialization value for the CR2 register.
    */
-  uint16_t                  sc_cr2;
+  uint32_t                  sc_cr2;
   /**
    * @brief Initialization value for the CR3 register.
    */
-  uint16_t                  sc_cr3;
+  uint32_t                  sc_cr3;
 } SerialConfig;
 
 /**
