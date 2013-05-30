@@ -5,7 +5,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer -mabi=apcs-gnu -falign-functions=16
+  USE_OPT = -O0 -ggdb -fomit-frame-pointer -falign-functions=16
 endif
 
 # C specific options here (added to USE_OPT).
@@ -15,17 +15,22 @@ endif
 
 # C++ specific options here (added to USE_OPT).
 ifeq ($(USE_CPPOPT),)
-  USE_CPPOPT = -fno-rtti -fno-exceptions
+  USE_CPPOPT = -fno-rtti
 endif
 
-# Enable this if you want the linker to remove unused code and data
+# Enable this if you want the linker to remove unused code and data.
 ifeq ($(USE_LINK_GC),)
   USE_LINK_GC = yes
 endif
 
-# If enabled, this option allows to compile the application in THUMB mode.
-ifeq ($(USE_THUMB),)
-  USE_THUMB = no
+# Linker options here.
+ifeq ($(USE_LDOPT),)
+  USE_LDOPT = 
+endif
+
+# If enabled, this option allows to compile the application in VLE mode.
+ifeq ($(USE_VLE),)
+  USE_VLE = yes
 endif
 
 # Enable this if you want to see the full log while compiling.
@@ -44,60 +49,38 @@ endif
 # Define project name here
 PROJECT = ch
 
-# Imported source files and paths
-CHIBIOS = ../..
-include $(CHIBIOS)/boards/OLIMEX_LPC_P2148/board.mk
-include $(CHIBIOS)/os/hal/platforms/LPC214x/platform.mk
+# Imported source files
+CHIBIOS = ../../..
+include $(CHIBIOS)/boards/ST_EVB_SPC563M/board.mk
+include $(CHIBIOS)/os/hal/platforms/SPC563Mxx/platform.mk
 include $(CHIBIOS)/os/hal/hal.mk
-include $(CHIBIOS)/os/ports/GCC/ARM/LPC214x/port.mk
+include $(CHIBIOS)/os/ports/GCC/PPC/SPC563Mxx/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
-include $(CHIBIOS)/os/various/cpp_wrappers/kernel.mk
-include $(CHIBIOS)/test/test.mk
+#include $(CHIBIOS)/test/test.mk
 
 # Define linker script file here
-LDSCRIPT= $(PORTLD)/LPC2148.ld
+LDSCRIPT= $(PORTLD)/SPC563M64.ld
 
-# C sources that can be compiled in ARM or THUMB mode depending on the global
-# setting.
+# C sources here.
 CSRC = $(PORTSRC) \
        $(KERNSRC) \
        $(TESTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
-       $(CHIBIOS)/os/various/evtimer.c
+       $(CHIBIOS)/os/various/evtimer.c \
+       $(CHIBIOS)/os/various/shell.c \
+       $(CHIBIOS)/os/various/chprintf.c \
+       main.c
 
-# C++ sources that can be compiled in ARM or THUMB mode depending on the global
-# setting.
-CPPSRC = $(CHCPPSRC) \
-         main.cpp
-
-# C sources to be compiled in ARM mode regardless of the global setting.
-# NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
-#       option that results in lower performance and larger code size.
-ACSRC =
-
-# C++ sources to be compiled in ARM mode regardless of the global setting.
-# NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
-#       option that results in lower performance and larger code size.
-ACPPSRC =
-
-# C sources to be compiled in THUMB mode regardless of the global setting.
-# NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
-#       option that results in lower performance and larger code size.
-TCSRC =
-
-# C sources to be compiled in THUMB mode regardless of the global setting.
-# NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
-#       option that results in lower performance and larger code size.
-TCPPSRC =
+# C++ sources here.
+CPPSRC =
 
 # List ASM source files here
 ASMSRC = $(PORTASM)
 
 INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
-         $(CHCPPINC) \
          $(CHIBIOS)/os/various
 
 #
@@ -108,10 +91,11 @@ INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
 # Compiler settings
 #
 
-MCU  = arm7tdmi
+#MCU  = e500mc -meabi -msdata=none -mnew-mnemonics -mregnames
+MCU  = e200zx -meabi -msdata=none -mnew-mnemonics -mregnames
 
-#TRGT = arm-elf-
-TRGT = arm-none-eabi-
+#TRGT = powerpc-eabi-
+TRGT = ppc-vle-
 CC   = $(TRGT)gcc
 CPPC = $(TRGT)g++
 # Enable loading with g++ only if you need C++ runtime support.
@@ -124,12 +108,6 @@ AS   = $(TRGT)gcc -x assembler-with-cpp
 OD   = $(TRGT)objdump
 HEX  = $(CP) -O ihex
 BIN  = $(CP) -O binary
-
-# ARM-specific options here
-AOPT =
-
-# THUMB-specific options here
-TOPT = -mthumb -DTHUMB
 
 # Define C warning options here
 CWARN = -Wall -Wextra -Wstrict-prototypes
@@ -187,4 +165,4 @@ ULIBS =
 # End of user defines
 ##############################################################################
 
-include $(CHIBIOS)/os/ports/GCC/ARM/rules.mk
+include $(CHIBIOS)/os/ports/GCC/PPC/rules.mk

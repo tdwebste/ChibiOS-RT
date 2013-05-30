@@ -15,7 +15,7 @@
 */
 
 /*
- * SPC563Mxx drivers configuration.
+ * SPC564Axx drivers configuration.
  * The following settings override the default settings present in
  * the various device driver implementation headers.
  * Note that the settings for each driver only have effect if the whole
@@ -25,7 +25,7 @@
  * 1...15       Lowest...Highest.
  */
 
-#define SPC563Mxx_MCUCONF
+#define SPC564Axx_MCUCONF
 
 /*
  * HAL driver system settings.
@@ -34,8 +34,8 @@
 #define SPC5_CLK_BYPASS                     FALSE
 #define SPC5_ALLOW_OVERCLOCK                FALSE
 #define SPC5_CLK_PREDIV_VALUE               2
-#define SPC5_CLK_MFD_VALUE                  80
-#define SPC5_CLK_RFD                        SPC5_RFD_DIV4
+#define SPC5_CLK_MFD_VALUE                  75
+#define SPC5_CLK_RFD                        SPC5_RFD_DIV2
 #define SPC5_FLASH_BIUCR                    (BIUCR_BANK1_TOO |              \
                                              BIUCR_MASTER4_PREFETCH |       \
                                              BIUCR_MASTER0_PREFETCH |       \
@@ -47,12 +47,12 @@
 /*
  * ADC driver settings.
  */
-#define SPC5_ADC_USE_ADC0_Q0                TRUE
-#define SPC5_ADC_USE_ADC0_Q1                TRUE
-#define SPC5_ADC_USE_ADC0_Q2                TRUE
-#define SPC5_ADC_USE_ADC1_Q3                TRUE
-#define SPC5_ADC_USE_ADC1_Q4                TRUE
-#define SPC5_ADC_USE_ADC1_Q5                TRUE
+#define SPC5_ADC_USE_ADC0_Q0                FALSE
+#define SPC5_ADC_USE_ADC0_Q1                FALSE
+#define SPC5_ADC_USE_ADC0_Q2                FALSE
+#define SPC5_ADC_USE_ADC1_Q3                FALSE
+#define SPC5_ADC_USE_ADC1_Q4                FALSE
+#define SPC5_ADC_USE_ADC1_Q5                FALSE
 #define SPC5_ADC_FIFO0_DMA_PRIO             12
 #define SPC5_ADC_FIFO1_DMA_PRIO             12
 #define SPC5_ADC_FIFO2_DMA_PRIO             12
@@ -66,32 +66,43 @@
 #define SPC5_ADC_FIFO4_DMA_IRQ_PRIO         12
 #define SPC5_ADC_FIFO5_DMA_IRQ_PRIO         12
 #define SPC5_ADC_CR_CLK_PS                  ADC_CR_CLK_PS(5)
-#define SPC5_ADC_PUDCR                      {ADC_PUDCR_NONE,                \
-                                             ADC_PUDCR_NONE,                \
-                                             ADC_PUDCR_NONE,                \
-                                             ADC_PUDCR_NONE,                \
-                                             ADC_PUDCR_NONE,                \
-                                             ADC_PUDCR_NONE,                \
-                                             ADC_PUDCR_NONE,                \
-                                             ADC_PUDCR_NONE}
+#define SPC5_ADC_PUDCR                      {ADC_PUDCR_NONE,ADC_PUDCR_NONE,ADC_PUDCR_NONE,ADC_PUDCR_NONE,ADC_PUDCR_NONE,ADC_PUDCR_NONE,ADC_PUDCR_NONE,ADC_PUDCR_NONE}
 
 /*
  * SERIAL driver system settings.
  */
 #define SPC5_USE_ESCIA                      TRUE
-#define SPC5_USE_ESCIB                      TRUE
+#define SPC5_USE_ESCIB                      FALSE
 #define SPC5_ESCIA_PRIORITY                 8
 #define SPC5_ESCIB_PRIORITY                 8
 
 /*
- * SPI driver system settings.
+ * ICU - PWM driver system settings.
  */
-#define SPC5_SPI_USE_DSPI1                  TRUE
-#define SPC5_SPI_USE_DSPI2                  TRUE
-#define SPC5_SPI_DSPI1_DMA_PRIO             10
-#define SPC5_SPI_DSPI2_DMA_PRIO             10
-#define SPC5_SPI_DSPI1_DMA_IRQ_PRIO         10
-#define SPC5_SPI_DSPI2_DMA_IRQ_PRIO         10
-#define SPC5_SPI_DSPI1_IRQ_PRIO             10
-#define SPC5_SPI_DSPI2_IRQ_PRIO             10
-#define SPC5_SPI_DMA_ERROR_HOOK(spip)       chSysHalt()
+#define SPC5_ICU_USE_EMIOS_CH0              TRUE
+#define SPC5_ICU_USE_EMIOS_CH1              TRUE
+#define SPC5_ICU_USE_EMIOS_CH2              TRUE
+#define SPC5_ICU_USE_EMIOS_CH3              TRUE
+#define SPC5_ICU_USE_EMIOS_CH4              TRUE
+#define SPC5_ICU_USE_EMIOS_CH5              TRUE
+#define SPC5_ICU_USE_EMIOS_CH6              TRUE
+#define SPC5_ICU_USE_EMIOS_CH7              TRUE
+#define SPC5_ICU_USE_EMIOS_CH8              TRUE
+#define SPC5_ICU_USE_EMIOS_CH16             TRUE
+#define SPC5_ICU_USE_EMIOS_CH17             TRUE
+#define SPC5_ICU_USE_EMIOS_CH18             TRUE
+
+#define SPC5_PWM_USE_EMIOS_CH9              TRUE
+#define SPC5_PWM_USE_EMIOS_CH10             TRUE
+#define SPC5_PWM_USE_EMIOS_CH11             TRUE
+#define SPC5_PWM_USE_EMIOS_CH12             TRUE
+#define SPC5_PWM_USE_EMIOS_CH13             TRUE
+#define SPC5_PWM_USE_EMIOS_CH14             TRUE
+#define SPC5_PWM_USE_EMIOS_CH15             TRUE
+#define SPC5_PWM_USE_EMIOS_CH19             TRUE
+#define SPC5_PWM_USE_EMIOS_CH20             TRUE
+#define SPC5_PWM_USE_EMIOS_CH21             TRUE
+#define SPC5_PWM_USE_EMIOS_CH22             TRUE
+#define SPC5_PWM_USE_EMIOS_CH23             TRUE
+
+#define SPC5_EMIOS_GLOBAL_PRESCALER         200
