@@ -36,6 +36,7 @@
 extern "C" {
 #endif
   void chprintf(BaseSequentialStream *chp, const char *fmt, ...);
+  void chsprintf(char *buf, const char *fmt, ...);
 #ifdef __cplusplus
 }
 #endif
