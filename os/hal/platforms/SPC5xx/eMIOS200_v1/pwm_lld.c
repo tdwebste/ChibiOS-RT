@@ -162,28 +162,28 @@ static void pwm_lld_serve_interrupt(PWMDriver *pwmp) {
 
   uint32_t sr = pwmp->emiosp->CH[pwmp->ch_number].CSR.R;
 
-  if(sr && EMIOSS_OVFL){
+  if (sr && EMIOSS_OVFL) {
     pwmp->emiosp->CH[pwmp->ch_number].CSR.R |= EMIOSS_OVFLC;
   }
-  if(sr && EMIOSS_OVR){
+  if (sr && EMIOSS_OVR) {
     pwmp->emiosp->CH[pwmp->ch_number].CSR.R |= EMIOSS_OVRC;
   }
-  if (sr && EMIOSS_FLAG){
+  if (sr && EMIOSS_FLAG) {
     pwmp->emiosp->CH[pwmp->ch_number].CSR.R |= EMIOSS_FLAGC;
 
     if (pwmp->config->channels[0].mode == PWM_OUTPUT_ACTIVE_HIGH) {
-      if (pwmp->emiosp->CH[pwmp->ch_number].CSR.B.UCOUT == 1U  &&       \
+      if (pwmp->emiosp->CH[pwmp->ch_number].CSR.B.UCOUT == 1U  &&           \
           pwmp->config->callback != NULL) {
         pwmp->config->callback(pwmp);
-      } else if (pwmp->emiosp->CH[pwmp->ch_number].CSR.B.UCOUT == 0 &&  \
+      } else if (pwmp->emiosp->CH[pwmp->ch_number].CSR.B.UCOUT == 0 &&      \
           pwmp->config->channels[0].callback != NULL) {
         pwmp->config->channels[0].callback(pwmp);
       }
     } else if (pwmp->config->channels[0].mode == PWM_OUTPUT_ACTIVE_LOW) {
-      if (pwmp->emiosp->CH[pwmp->ch_number].CSR.B.UCOUT == 0  &&        \
+      if (pwmp->emiosp->CH[pwmp->ch_number].CSR.B.UCOUT == 0  &&            \
           pwmp->config->callback != NULL) {
         pwmp->config->callback(pwmp);
-      } else if (pwmp->emiosp->CH[pwmp->ch_number].CSR.B.UCOUT == 1U && \
+      } else if (pwmp->emiosp->CH[pwmp->ch_number].CSR.B.UCOUT == 1U &&     \
           pwmp->config->channels[0].callback != NULL) {
         pwmp->config->channels[0].callback(pwmp);
       }
@@ -696,7 +696,7 @@ void pwm_lld_start(PWMDriver *pwmp) {
   chDbgAssert((psc <= 0xFFFF) &&
               (((psc) * pwmp->config->frequency) == SPC5_EMIOS_CLK) &&
               ((psc == 1) || (psc == 2) || (psc == 3) || (psc == 4)),
-              "pwm_lld_start(), #1", "invalid frequency");
+              "pwm_lld_start(), #2", "invalid frequency");
 
   if (pwmp->config->mode == PWM_ALIGN_EDGE) {
     pwmp->emiosp->CH[pwmp->ch_number].CCR.B.UCPREN = 0;
@@ -707,19 +707,19 @@ void pwm_lld_start(PWMDriver *pwmp) {
     pwmp->emiosp->CH[pwmp->ch_number].CBDR.R = pwmp->config->period;
     pwmp->emiosp->CH[pwmp->ch_number].CCR.R |=
         EMIOSC_BSL(EMIOS_BSL_INTERNAL_COUNTER) | EMIOS_CCR_MODE_OPWFMB | 2U;
-    pwmp->emiosp->CH[pwmp->ch_number].CCR.R |= EMIOSC_UCPREN;;
+    pwmp->emiosp->CH[pwmp->ch_number].CCR.R |= EMIOSC_UCPREN;
 
     /* Set output polarity.*/
-    if(pwmp->config->channels[0].mode == PWM_OUTPUT_ACTIVE_LOW) {
+    if (pwmp->config->channels[0].mode == PWM_OUTPUT_ACTIVE_LOW) {
       pwmp->emiosp->CH[pwmp->ch_number].CCR.R |= EMIOSC_EDPOL;
-    } else if(pwmp->config->channels[0].mode == PWM_OUTPUT_ACTIVE_HIGH) {
+    } else if (pwmp->config->channels[0].mode == PWM_OUTPUT_ACTIVE_HIGH) {
       pwmp->emiosp->CH[pwmp->ch_number].CCR.R &= ~EMIOSC_EDPOL;
     }
 
     /* Channel disables.*/
     pwmp->emiosp->UCDIS.R |= (1 << pwmp->ch_number);
 
-  } else if (pwmp->config->mode == PWM_ALIGN_CENTER){
+  } else if (pwmp->config->mode == PWM_ALIGN_CENTER) {
     /* Not implemented.*/
   }
 

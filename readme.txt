@@ -88,8 +88,32 @@
 *** Releases                                                              ***
 *****************************************************************************
 
+*** 2.7.0 ***
+- FIX: Fixed FSMC reset on STM32F4xx (bug #420)(backported to 2.6.1
+  and 2.4.4).
+- FIX: Fixed invalid directory links in the demo files (bug #419)(backported
+  to 2.6.1).
+- FIX: Fixed missing casts in time-conversion macros (bug #418)(backported
+  to 2.6.1, 2.4.4 and 2.2.10).
+- FIX: Fixed PLL2 activation condition is wrong in STM32F107 HAL (bug #417)
+  (backported to 2.6.1 and 2.4.4).
+- FIX: Fixed STM32 Serial (v2) driver invalid CR registers size (bug #416)
+  (backported to 2.6.0).
+- FIX: Fixed MS2ST() and US2ST() macros error (bug #415)(backported to 2.6.0,
+  2.4.4, 2.2.10, NilRTOS).
+- NEW: Added port support for SCP560B64.
+- NEW: Added DAC driver high level files and low level files templates.
+- NEW: Added support of UART4 and UART5 (STM32F4x and STM32F2x platforms)
+  (feature request #28).
+- NEW: SPI driver for SPC560Pxx, SPC563Mxx, SPC564Axx, SPC56ELAxx, SPC560Dxx.
+- NEW: Support for SPC560Dxx devices.
+- NEW: DMA-MUX support for SPC5xx devices.
+
 *** 2.5.2 ***
+- FIX: Fixed lwipthread.h should explicitly include lwip/opts.h (bug #414).
+- FIX: Fixed STM32_PLLI2SCLKOUT miscalculated (bug #413)(backported to 2.4.4).
 - FIX: Fixed wrong RTC vector name in STM32F1/F4/L1 EXT drivers (bug #412).
+- FIX: Fixed fill character error in chprintf (bug #411).
 - FIX: Fixed wrong STM32 USBv1 driver behavior (bug #410).
 - FIX: Fixed STM32 wrong peripherals reset procedure (bug #409)(backported
   to 2.4.4).
