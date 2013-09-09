@@ -24,7 +24,7 @@
 
 #include "ch.h"
 #include "hal.h"
-#define USE_RS485_RE_KLUDGE
+// #define USE_RS485_RE_KLUDGE
 #ifdef USE_RS485_RE_KLUDGE
 static void RS485_RE_Enable(uint8_t enable)
 {
