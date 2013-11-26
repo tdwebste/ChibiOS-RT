@@ -24,6 +24,20 @@
 
 #include "ch.h"
 #include "hal.h"
+// #define USE_RS485_RE_KLUDGE
+#ifdef USE_RS485_RE_KLUDGE
+static void RS485_RE_Enable(uint8_t enable)
+{
+	if (enable)
+	{
+        palClearPad(RS485_RE_PORT, RS485_RE_PIN);
+	}
+	else
+	{
+        palSetPad(RS485_RE_PORT, RS485_RE_PIN);
+	}
+}
+#endif
 #if HAL_USE_SERIAL || defined(__DOXYGEN__)
 
 /*===========================================================================*/
