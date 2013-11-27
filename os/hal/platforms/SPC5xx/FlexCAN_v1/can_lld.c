@@ -82,6 +82,7 @@ CANDriver CAND6;
  */
 static void can_lld_tx_handler(CANDriver *canp) {
   uint32_t iflag1, iflag2;
+  (void)iflag2;
 
   /* No more events until a message is transmitted.*/
   iflag1 = canp->flexcan->IFRL.R;
@@ -90,41 +91,41 @@ static void can_lld_tx_handler(CANDriver *canp) {
 #if SPC5_CAN_USE_FLEXCAN0 && (SPC5_FLEXCAN0_MB == 64)
   if(&CAND1 == canp) {
     iflag2 = canp->flexcan->IFRH.R;
-    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R & 0xFFFFFFFF;
+    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R;
   }
 #endif
 #if SPC5_CAN_USE_FLEXCAN1 && (SPC5_FLEXCAN1_MB == 64)
   if(&CAND2 == canp) {
     iflag2 = canp->flexcan->IFRH.R;
-    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R & 0xFFFFFFFF;
+    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R;
   }
 #endif
 #if SPC5_CAN_USE_FLEXCAN2 && (SPC5_FLEXCAN2_MB == 64)
   if(&CAND3 == canp) {
     iflag2 = canp->flexcan->IFRH.R;
-    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R & 0xFFFFFFFF;
+    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R;
   }
 #endif
 #if SPC5_CAN_USE_FLEXCAN3 && (SPC5_FLEXCAN3_MB == 64)
   if(&CAND4 == canp) {
     iflag2 = canp->flexcan->IFRH.R;
-    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R & 0xFFFFFFFF;
+    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R;
   }
 #endif
 #if SPC5_CAN_USE_FLEXCAN4 && (SPC5_FLEXCAN4_MB == 64)
   if(&CAND5 == canp) {
     iflag2 = canp->flexcan->IFRH.R;
-    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R & 0xFFFFFFFF;
+    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R;
   }
 #endif
 #if SPC5_CAN_USE_FLEXCAN5 && (SPC5_FLEXCAN5_MB == 64)
   if(&CAND6 == canp) {
     iflag2 = canp->flexcan->IFRH.R;
-    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R & 0xFFFFFFFF;
+    canp->flexcan->IFRH.R = canp->flexcan->IFRH.R;
   }
 #endif
 
-  chSysLockFromIsr();
+  chSysLockFromISR();
   while (chSemGetCounterI(&canp->txsem) < 0)
     chSemSignalI(&canp->txsem);
 
@@ -183,7 +184,7 @@ static void can_lld_tx_handler(CANDriver *canp) {
   }
 #endif
 
-  chSysUnlockFromIsr();
+  chSysUnlockFromISR();
 }
 
 /**
@@ -198,11 +199,12 @@ static void can_lld_rx_handler(CANDriver *canp) {
 
   iflag1 = canp->flexcan->IFRL.R;
   if ((iflag1 & 0x000000FF) != 0) {
-    chSysLockFromIsr();
-    while (chSemGetCounterI(&canp->rxsem) < 0)
+    chSysLockFromISR();
+	while (chSemGetCounterI(&canp->rxsem) < 0)
       chSemSignalI(&canp->rxsem);
+
     chEvtBroadcastFlagsI(&canp->rxfull_event, iflag1 & 0x000000FF);
-    chSysUnlockFromIsr();
+    chSysUnlockFromISR();
 
     /* Release the mailbox.*/
     canp->flexcan->IFRL.R = iflag1 & 0x000000FF;
@@ -219,7 +221,7 @@ static void can_lld_rx_handler(CANDriver *canp) {
 static void can_lld_err_handler(CANDriver *canp) {
 
   uint32_t esr = canp->flexcan->ESR.R;
-  flagsmask_t flags = 0;
+  eventflags_t flags = 0;
 
   /* Error event.*/
   if ((esr & CAN_ESR_TWRN_INT) || (esr & CAN_ESR_RWRN_INT)) {
@@ -237,9 +239,9 @@ static void can_lld_err_handler(CANDriver *canp) {
     canp->flexcan->ESR.B.ERRINT = 1U;
     flags |= CAN_FRAMING_ERROR;
   }
-  chSysLockFromIsr();
+  chSysLockFromISR();
   chEvtBroadcastFlagsI(&canp->error_event, flags);
-  chSysUnlockFromIsr();
+  chSysUnlockFromISR();
 }
 
 /*===========================================================================*/
@@ -247,7 +249,7 @@ static void can_lld_err_handler(CANDriver *canp) {
 /*===========================================================================*/
 
 #if SPC5_CAN_USE_FLEXCAN0 || defined(__DOXYGEN__)
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN0_SHARED_IRQ
 /**
  * @brief   CAN1 RX interrupt handler for MB 0.
  *
@@ -663,7 +665,7 @@ CH_IRQ_HANDLER(SPC5_FLEXCAN0_FLEXCAN_ESR_BOFF_HANDLER) {
 #endif /* SPC5_CAN_USE_FLEXCAN0 */
 
 #if SPC5_CAN_USE_FLEXCAN1 || defined(__DOXYGEN__)
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN1_SHARED_IRQ
 /**
  * @brief   CAN2 RX interrupt handler for MB 0.
  *
@@ -1079,7 +1081,7 @@ CH_IRQ_HANDLER(SPC5_FLEXCAN1_FLEXCAN_ESR_BOFF_HANDLER) {
 #endif /* SPC5_CAN_USE_FLEXCAN1 */
 
 #if SPC5_CAN_USE_FLEXCAN2 || defined(__DOXYGEN__)
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN2_SHARED_IRQ
 /**
  * @brief   CAN3 RX interrupt handler for MB 0.
  *
@@ -1495,7 +1497,7 @@ CH_IRQ_HANDLER(SPC5_FLEXCAN2_FLEXCAN_ESR_BOFF_HANDLER) {
 #endif /* SPC5_CAN_USE_FLEXCAN2 */
 
 #if SPC5_CAN_USE_FLEXCAN3 || defined(__DOXYGEN__)
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN3_SHARED_IRQ
 /**
  * @brief   CAN4 RX interrupt handler for MB 0.
  *
@@ -1911,7 +1913,7 @@ CH_IRQ_HANDLER(SPC5_FLEXCAN3_FLEXCAN_ESR_BOFF_HANDLER) {
 #endif /* SPC5_CAN_USE_FLEXCAN3 */
 
 #if SPC5_CAN_USE_FLEXCAN4 || defined(__DOXYGEN__)
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN4_SHARED_IRQ
 /**
  * @brief   CAN5 RX interrupt handler for MB 0.
  *
@@ -2327,7 +2329,7 @@ CH_IRQ_HANDLER(SPC5_FLEXCAN4_FLEXCAN_ESR_BOFF_HANDLER) {
 #endif /* SPC5_CAN_USE_FLEXCAN4 */
 
 #if SPC5_CAN_USE_FLEXCAN5 || defined(__DOXYGEN__)
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN5_SHARED_IRQ
 /**
  * @brief   CAN6 RX interrupt handler for MB 0.
  *
@@ -2757,7 +2759,7 @@ void can_lld_init(void) {
   /* Driver initialization.*/
   canObjectInit(&CAND1);
   CAND1.flexcan = &SPC5_FLEXCAN_0;
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN0_SHARED_IRQ
   INTC.PSR[SPC5_FLEXCAN0_FLEXCAN_ESR_ERR_INT_NUMBER].R =
       SPC5_CAN_FLEXCAN0_IRQ_PRIORITY;
   INTC.PSR[SPC5_FLEXCAN0_FLEXCAN_ESR_BOFF_NUMBER].R =
@@ -2820,7 +2822,7 @@ void can_lld_init(void) {
   /* Driver initialization.*/
   canObjectInit(&CAND2);
   CAND2.flexcan = &SPC5_FLEXCAN_1;
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN1_SHARED_IRQ
   INTC.PSR[SPC5_FLEXCAN1_FLEXCAN_ESR_ERR_INT_NUMBER].R =
       SPC5_CAN_FLEXCAN1_IRQ_PRIORITY;
   INTC.PSR[SPC5_FLEXCAN1_FLEXCAN_ESR_BOFF_NUMBER].R =
@@ -2883,7 +2885,7 @@ void can_lld_init(void) {
   /* Driver initialization.*/
   canObjectInit(&CAND3);
   CAND3.flexcan = &SPC5_FLEXCAN_2;
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN2_SHARED_IRQ
   INTC.PSR[SPC5_FLEXCAN2_FLEXCAN_ESR_ERR_INT_NUMBER].R =
       SPC5_CAN_FLEXCAN2_IRQ_PRIORITY;
   INTC.PSR[SPC5_FLEXCAN2_FLEXCAN_ESR_BOFF_NUMBER].R =
@@ -2946,7 +2948,7 @@ void can_lld_init(void) {
   /* Driver initialization.*/
   canObjectInit(&CAND4);
   CAND4.flexcan = &SPC5_FLEXCAN_3;
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN3_SHARED_IRQ
   INTC.PSR[SPC5_FLEXCAN3_FLEXCAN_ESR_ERR_INT_NUMBER].R =
       SPC5_CAN_FLEXCAN3_IRQ_PRIORITY;
   INTC.PSR[SPC5_FLEXCAN3_FLEXCAN_ESR_BOFF_NUMBER].R =
@@ -3009,7 +3011,7 @@ void can_lld_init(void) {
   /* Driver initialization.*/
   canObjectInit(&CAND5);
   CAND5.flexcan = &SPC5_FLEXCAN_4;
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN4_SHARED_IRQ
   INTC.PSR[SPC5_FLEXCAN4_FLEXCAN_ESR_ERR_INT_NUMBER].R =
       SPC5_CAN_FLEXCAN4_IRQ_PRIORITY;
   INTC.PSR[SPC5_FLEXCAN4_FLEXCAN_ESR_BOFF_NUMBER].R =
@@ -3072,7 +3074,7 @@ void can_lld_init(void) {
   /* Driver initialization.*/
   canObjectInit(&CAND6);
   CAND6.flexcan = &SPC5_FLEXCAN_5;
-#if (defined _SPC563M64L5_ || defined _SPC564A70L7_)
+#if !SPC5_FLEXCAN5_SHARED_IRQ
   INTC.PSR[SPC5_FLEXCAN5_FLEXCAN_ESR_ERR_INT_NUMBER].R =
       SPC5_CAN_FLEXCAN5_IRQ_PRIORITY;
   INTC.PSR[SPC5_FLEXCAN5_FLEXCAN_ESR_BOFF_NUMBER].R =

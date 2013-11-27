@@ -810,12 +810,12 @@ void pwm_lld_start(PWMDriver *pwmp) {
 
     /* Set eMIOS0 Clock.*/
 #if SPC5_PWM_USE_EMIOS0
-    active_emios0_clock(NULL, pwmp);
+    pwm_active_emios0_clock(pwmp);
 #endif
 
     /* Set eMIOS1 Clock.*/
 #if SPC5_PWM_USE_EMIOS1
-    active_emios1_clock(NULL, pwmp);
+    pwm_active_emios1_clock(pwmp);
 #endif
 
   }
@@ -887,13 +887,13 @@ void pwm_lld_start(PWMDriver *pwmp) {
     chDbgAssert((psc <= 0xFFFF) &&
                 (((psc) * pwmp->config->frequency) == SPC5_EMIOS0_CLK) &&
                 ((psc == 1) || (psc == 2) || (psc == 3) || (psc == 4)),
-                "pwm_lld_start(), #3", "invalid frequency");
+                "pwm_lld_start(), #1", "invalid frequency");
   } else if (pwmp->emiosp == &EMIOS_1) {
     psc = (SPC5_EMIOS1_CLK / pwmp->config->frequency);
     chDbgAssert((psc <= 0xFFFF) &&
                 (((psc) * pwmp->config->frequency) == SPC5_EMIOS1_CLK) &&
                 ((psc == 1) || (psc == 2) || (psc == 3) || (psc == 4)),
-                "pwm_lld_start(), #4", "invalid frequency");
+                "pwm_lld_start(), #2", "invalid frequency");
   }
 
 
@@ -1370,12 +1370,12 @@ void pwm_lld_stop(PWMDriver *pwmp) {
 
     /* eMIOS0 clock deactivation.*/
 #if SPC5_PWM_USE_EMIOS0
-    deactive_emios0_clock(NULL, pwmp);
+    pwm_deactive_emios0_clock(pwmp);
 #endif
 
     /* eMIOS1 clock deactivation.*/
 #if SPC5_PWM_USE_EMIOS1
-    deactive_emios1_clock(NULL, pwmp);
+    pwm_deactive_emios1_clock(pwmp);
 #endif
   }
 }
