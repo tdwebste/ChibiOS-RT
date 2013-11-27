@@ -369,31 +369,6 @@
 #define STM32_TIM_CCMR3_OC6CE               (1U << 15)
 /** @} */
 
-/**
- * @name    TIM units references
- * @{
- */
-#define STM32_TIM1      ((stm32_tim_t *)TIM1_BASE)
-#define STM32_TIM2      ((stm32_tim_t *)TIM2_BASE)
-#define STM32_TIM3      ((stm32_tim_t *)TIM3_BASE)
-#define STM32_TIM4      ((stm32_tim_t *)TIM4_BASE)
-#define STM32_TIM5      ((stm32_tim_t *)TIM5_BASE)
-#define STM32_TIM6      ((stm32_tim_t *)TIM6_BASE)
-#define STM32_TIM7      ((stm32_tim_t *)TIM7_BASE)
-#define STM32_TIM8      ((stm32_tim_t *)TIM8_BASE)
-#define STM32_TIM9      ((stm32_tim_t *)TIM9_BASE)
-#define STM32_TIM10     ((stm32_tim_t *)TIM10_BASE)
-#define STM32_TIM11     ((stm32_tim_t *)TIM11_BASE)
-#define STM32_TIM12     ((stm32_tim_t *)TIM12_BASE)
-#define STM32_TIM13     ((stm32_tim_t *)TIM13_BASE)
-#define STM32_TIM14     ((stm32_tim_t *)TIM14_BASE)
-#define STM32_TIM15     ((stm32_tim_t *)TIM15_BASE)
-#define STM32_TIM16     ((stm32_tim_t *)TIM16_BASE)
-#define STM32_TIM17     ((stm32_tim_t *)TIM17_BASE)
-#define STM32_TIM18     ((stm32_tim_t *)TIM18_BASE)
-#define STM32_TIM19     ((stm32_tim_t *)TIM19_BASE)
-/** @} */
-
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
 /*===========================================================================*/
@@ -405,35 +380,6 @@
 /*===========================================================================*/
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
-
-/**
- * @brief   STM32 TIM registers block.
- * @note    This is the most general known form, not all timers have
- *          necessarily all registers and bits.
- */
-typedef struct {
-  volatile uint32_t     CR1;
-  volatile uint32_t     CR2;
-  volatile uint32_t     SMCR;
-  volatile uint32_t     DIER;
-  volatile uint32_t     SR;
-  volatile uint32_t     EGR;
-  volatile uint32_t     CCMR1;
-  volatile uint32_t     CCMR2;
-  volatile uint32_t     CCER;
-  volatile uint32_t     CNT;
-  volatile uint32_t     PSC;
-  volatile uint32_t     ARR;
-  volatile uint32_t     RCR;
-  volatile uint32_t     CCR[4];
-  volatile uint32_t     BDTR;
-  volatile uint32_t     DCR;
-  volatile uint32_t     DMAR;
-  volatile uint32_t     OR;
-  volatile uint32_t     CCMR3;
-  volatile uint32_t     CCR5;
-  volatile uint32_t     CCR6;
-} stm32_tim_t;
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
