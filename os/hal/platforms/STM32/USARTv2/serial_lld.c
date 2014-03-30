@@ -24,20 +24,7 @@
 
 #include "ch.h"
 #include "hal.h"
-// #define USE_RS485_RE_KLUDGE
-#ifdef USE_RS485_RE_KLUDGE
-static void RS485_RE_Enable(uint8_t enable)
-{
-	if (enable)
-	{
-        palClearPad(RS485_RE_PORT, RS485_RE_PIN);
-	}
-	else
-	{
-        palSetPad(RS485_RE_PORT, RS485_RE_PIN);
-	}
-}
-#endif
+
 #if HAL_USE_SERIAL || defined(__DOXYGEN__)
 
 /*===========================================================================*/
@@ -169,18 +156,21 @@ static void serve_interrupt(SerialDriver *sdp) {
   /* Error condition detection.*/
   if (isr & (USART_ISR_ORE | USART_ISR_NE | USART_ISR_FE  | USART_ISR_PE))
     set_error(sdp, isr);
+
   /* Special case, LIN break detection.*/
   if (isr & USART_ISR_LBD) {
     chSysLockFromIsr();
     chnAddFlagsI(sdp, SD_BREAK_DETECTED);
     chSysUnlockFromIsr();
   }
+
   /* Data available.*/
   if (isr & USART_ISR_RXNE) {
     chSysLockFromIsr();
     sdIncomingDataI(sdp, (uint8_t)u->RDR);
     chSysUnlockFromIsr();
   }
+
   /* Transmission buffer empty.*/
   if ((cr1 & USART_CR1_TXEIE) && (isr & USART_ISR_TXE)) {
     msg_t b;
@@ -193,19 +183,16 @@ static void serve_interrupt(SerialDriver *sdp) {
     else
     {
       u->TDR = b;
-
     }
     chSysUnlockFromIsr();
   }
+
   /* Physical transmission end.*/
   if (isr & USART_ISR_TC) {
     chSysLockFromIsr();
     chnAddFlagsI(sdp, CHN_TRANSMISSION_END);
-
     chSysUnlockFromIsr();
     u->CR1 = cr1 & ~USART_CR1_TCIE;
-
-
   }
 }
 

@@ -69,6 +69,7 @@
 
 /* COMP attributes.*/
 #define STM32_HAS_COMP1         TRUE
+#define STM32_HAS_COMP2         FALSE
 /* DAC attributes.*/
 #define STM32_HAS_DAC           TRUE
 

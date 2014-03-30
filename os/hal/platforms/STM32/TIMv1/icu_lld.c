@@ -102,7 +102,6 @@ ICUDriver ICUD9;
 #if STM32_ICU_USE_TIM15 || defined(__DOXYGEN__)
 ICUDriver ICUD15;
 #endif
-
 /**
  * @brief   ICUD16 driver identifier.
  * @note    The driver ICUD16 allocates the timer TIM16 when enabled.
@@ -117,8 +116,6 @@ ICUDriver ICUD16;
 #if STM32_ICU_USE_TIM17 || defined(__DOXYGEN__)
 ICUDriver ICUD17;
 #endif
-
-
 /**
  * @brief   ICUD19 driver identifier.
  * @note    The driver ICUD19 allocates the timer TIM19 when enabled.
@@ -579,7 +576,6 @@ void icu_lld_start(ICUDriver *icup) {
       icup->clock = STM32_TIMCLK1;
     }
 #endif
-
 #if STM32_ICU_USE_TIM5
     if (&ICUD5 == icup) {
       rccEnableTIM5(FALSE);
@@ -589,7 +585,6 @@ void icu_lld_start(ICUDriver *icup) {
       icup->clock = STM32_TIMCLK1;
     }
 #endif
-
 #if STM32_ICU_USE_TIM8
     if (&ICUD8 == icup) {
       rccEnableTIM8(FALSE);
