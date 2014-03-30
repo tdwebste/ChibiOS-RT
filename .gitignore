@@ -1,3 +1,7 @@
-*/build
-*/.dep
+build
+.dep
 .*.sw?
+.cproject
+.project
+.settings
+ 
