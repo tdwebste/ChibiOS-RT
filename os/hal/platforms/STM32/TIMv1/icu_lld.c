@@ -95,6 +95,35 @@ ICUDriver ICUD8;
 ICUDriver ICUD9;
 #endif
 
+/**
+ * @brief   ICUD15 driver identifier.
+ * @note    The driver ICUD15 allocates the timer TIM15 when enabled.
+ */
+#if STM32_ICU_USE_TIM15 || defined(__DOXYGEN__)
+ICUDriver ICUD15;
+#endif
+/**
+ * @brief   ICUD16 driver identifier.
+ * @note    The driver ICUD16 allocates the timer TIM16 when enabled.
+ */
+#if STM32_ICU_USE_TIM16 || defined(__DOXYGEN__)
+ICUDriver ICUD16;
+#endif
+/**
+ * @brief   ICUD17 driver identifier.
+ * @note    The driver ICUD17 allocates the timer TIM17 when enabled.
+ */
+#if STM32_ICU_USE_TIM17 || defined(__DOXYGEN__)
+ICUDriver ICUD17;
+#endif
+/**
+ * @brief   ICUD19 driver identifier.
+ * @note    The driver ICUD19 allocates the timer TIM19 when enabled.
+ */
+#if STM32_ICU_USE_TIM19 || defined(__DOXYGEN__)
+ICUDriver ICUD19;
+#endif
+
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
@@ -327,6 +356,94 @@ CH_IRQ_HANDLER(STM32_TIM9_HANDLER) {
 }
 #endif /* STM32_ICU_USE_TIM9 */
 
+#if STM32_ICU_USE_TIM15
+#if !defined(STM32_TIM15_HANDLER)
+#error "STM32_TIM15_HANDLER not defined"
+#endif
+/**
+ * @brief   TIM15 compare interrupt handler.
+ * @note    It is assumed that the various sources are only activated if the
+ *          associated callback pointer is not equal to @p NULL in order to not
+ *          perform an extra check in a potentially critical interrupt handler.
+ *
+ * @isr
+ */
+CH_IRQ_HANDLER(STM32_TIM15_HANDLER) {
+
+  CH_IRQ_PROLOGUE();
+
+  icu_lld_serve_interrupt(&ICUD15);
+
+  CH_IRQ_EPILOGUE();
+}
+#endif /* STM32_ICU_USE_TIM15 */
+
+#if STM32_ICU_USE_TIM16
+#if !defined(STM32_TIM16_HANDLER)
+#error "STM32_TIM16_HANDLER not defined"
+#endif
+/**
+ * @brief   TIM16 compare interrupt handler.
+ * @note    It is assumed that the various sources are only activated if the
+ *          associated callback pointer is not equal to @p NULL in order to not
+ *          perform an extra check in a potentially critical interrupt handler.
+ *
+ * @isr
+ */
+CH_IRQ_HANDLER(STM32_TIM16_HANDLER) {
+
+  CH_IRQ_PROLOGUE();
+
+  icu_lld_serve_interrupt(&ICUD16);
+
+  CH_IRQ_EPILOGUE();
+}
+#endif /* STM32_ICU_USE_TIM16 */
+
+#if STM32_ICU_USE_TIM17
+#if !defined(STM32_TIM17_HANDLER)
+#error "STM32_TIM17_HANDLER not defined"
+#endif
+/**
+ * @brief   TIM17 compare interrupt handler.
+ * @note    It is assumed that the various sources are only activated if the
+ *          associated callback pointer is not equal to @p NULL in order to not
+ *          perform an extra check in a potentially critical interrupt handler.
+ *
+ * @isr
+ */
+CH_IRQ_HANDLER(STM32_TIM17_HANDLER) {
+
+  CH_IRQ_PROLOGUE();
+
+  icu_lld_serve_interrupt(&ICUD17);
+
+  CH_IRQ_EPILOGUE();
+}
+#endif /* STM32_ICU_USE_TIM17 */
+
+#if STM32_ICU_USE_TIM19
+#if !defined(STM32_TIM19_HANDLER)
+#error "STM32_TIM19_HANDLER not defined"
+#endif
+/**
+ * @brief   TIM19 compare interrupt handler.
+ * @note    It is assumed that the various sources are only activated if the
+ *          associated callback pointer is not equal to @p NULL in order to not
+ *          perform an extra check in a potentially critical interrupt handler.
+ *
+ * @isr
+ */
+CH_IRQ_HANDLER(STM32_TIM19_HANDLER) {
+
+  CH_IRQ_PROLOGUE();
+
+  icu_lld_serve_interrupt(&ICUD19);
+
+  CH_IRQ_EPILOGUE();
+}
+#endif /* STM32_ICU_USE_TIM19 */
+
 /*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
@@ -379,6 +496,30 @@ void icu_lld_init(void) {
   icuObjectInit(&ICUD9);
   ICUD9.tim = STM32_TIM9;
 #endif
+
+#if STM32_ICU_USE_TIM15
+  /* Driver initialization.*/
+  icuObjectInit(&ICUD15);
+  ICUD15.tim = STM32_TIM15;
+#endif
+
+#if STM32_ICU_USE_TIM16
+  /* Driver initialization.*/
+  icuObjectInit(&ICUD16);
+  ICUD16.tim = STM32_TIM16;
+#endif
+
+#if STM32_ICU_USE_TIM17
+  /* Driver initialization.*/
+  icuObjectInit(&ICUD17);
+  ICUD17.tim = STM32_TIM17;
+#endif
+
+#if STM32_ICU_USE_TIM19
+  /* Driver initialization.*/
+  icuObjectInit(&ICUD19);
+  ICUD19.tim = STM32_TIM19;
+#endif
 }
 
 /**
@@ -390,7 +531,7 @@ void icu_lld_init(void) {
  */
 void icu_lld_start(ICUDriver *icup) {
   uint32_t psc;
-
+  uint8_t single_channel = FALSE;
   chDbgAssert((icup->config->channel == ICU_CHANNEL_1) ||
               (icup->config->channel == ICU_CHANNEL_2),
               "icu_lld_start(), #1", "invalid input");
@@ -463,15 +604,53 @@ void icu_lld_start(ICUDriver *icup) {
 #endif
     }
 #endif
-#if STM32_ICU_USE_TIM9
-    if (&ICUD9 == icup) {
-      rccEnableTIM9(FALSE);
-      rccResetTIM9();
-      nvicEnableVector(STM32_TIM9_NUMBER,
-                       CORTEX_PRIORITY_MASK(STM32_ICU_TIM9_IRQ_PRIORITY));
+
+#if STM32_ICU_USE_TIM15
+    if (&ICUD15 == icup) {
+      rccEnableTIM15(FALSE);
+      rccResetTIM15();
+      nvicEnableVector(STM32_TIM15_NUMBER,
+                       CORTEX_PRIORITY_MASK(STM32_ICU_TIM15_IRQ_PRIORITY));
       icup->clock = STM32_TIMCLK1;
     }
 #endif
+
+#if STM32_ICU_USE_TIM16
+    if (&ICUD16 == icup) {
+      rccEnableTIM16(FALSE);
+      rccResetTIM16();
+      nvicEnableVector(STM32_TIM16_NUMBER,
+                       CORTEX_PRIORITY_MASK(STM32_ICU_TIM16_IRQ_PRIORITY));
+      icup->clock = STM32_TIMCLK1;
+      single_channel = TRUE;
+      chDbgAssert (icup->config->channel == ICU_CHANNEL_1, "icu_lld_start(), #1", "invalid channel for TIM16");
+      chDbgAssert (icup->config->width_cb == NULL, "icu_lld_start(), #1", "Width callback not supported in TIM16");
+    }
+#endif
+
+#if STM32_ICU_USE_TIM17
+    if (&ICUD17 == icup) {
+      rccEnableTIM17(FALSE);
+      rccResetTIM17();
+      nvicEnableVector(STM32_TIM17_NUMBER,
+                       CORTEX_PRIORITY_MASK(STM32_ICU_TIM17_IRQ_PRIORITY));
+      icup->clock = STM32_TIMCLK1;
+      single_channel = TRUE;
+      chDbgAssert (icup->config->channel == ICU_CHANNEL_1, "icu_lld_start(), #1", "invalid channel for TIM17");
+      chDbgAssert (icup->config->width_cb == NULL, "icu_lld_start(), #1", "Width callback not supported in TIM17");
+    }
+#endif
+
+#if STM32_ICU_USE_TIM19
+    if (&ICUD19 == icup) {
+      rccEnableTIM19(FALSE);
+      rccResetTIM19();
+      nvicEnableVector(STM32_TIM19_NUMBER,
+                       CORTEX_PRIORITY_MASK(STM32_ICU_TIM19_IRQ_PRIORITY));
+      icup->clock = STM32_TIMCLK1;
+    }
+#endif
+
   }
   else {
     /* Driver re-configuration scenario, it must be stopped first.*/
@@ -491,8 +670,22 @@ void icu_lld_start(ICUDriver *icup) {
               "icu_lld_start(), #1", "invalid frequency");
   icup->tim->PSC  = (uint16_t)psc;
   icup->tim->ARR   = 0xFFFF;
-
-  if (icup->config->channel == ICU_CHANNEL_1) {
+  if (single_channel) {
+    /* Selected input 1.
+       CCMR1_CC1S = 01 = CH1 Input on TI1.*/
+    icup->tim->CCMR1 = TIM_CCMR1_CC1S_0;
+    /* The CCER settings depend on the selected trigger mode.
+       ICU_INPUT_ACTIVE_HIGH: Active on rising edge, idle on falling edge.
+       ICU_INPUT_ACTIVE_LOW:  Active on falling edge, idle on rising edge.*/
+    if (icup->config->mode == ICU_INPUT_ACTIVE_HIGH)
+      icup->tim->CCER = TIM_CCER_CC1E;
+    else
+      icup->tim->CCER = TIM_CCER_CC1E | TIM_CCER_CC1P;
+      /* Direct pointers to the capture registers in order to make reading
+         data faster from within callbacks.*/
+    icup->wccrp = NULL;
+    icup->pccrp = &icup->tim->CCR[0];
+  } else  if (icup->config->channel == ICU_CHANNEL_1) {
     /* Selected input 1.
        CCMR1_CC1S = 01 = CH1 Input on TI1.
        CCMR1_CC2S = 10 = CH2 Input on TI1.*/
@@ -600,6 +793,30 @@ void icu_lld_stop(ICUDriver *icup) {
     if (&ICUD9 == icup) {
       nvicDisableVector(STM32_TIM9_NUMBER);
       rccDisableTIM9(FALSE);
+    }
+#endif
+#if STM32_ICU_USE_TIM15
+    if (&ICUD15 == icup) {
+      nvicDisableVector(STM32_TIM15_NUMBER);
+      rccDisableTIM15(FALSE);
+    }
+#endif
+    #if STM32_ICU_USE_TIM16
+    if (&ICUD16 == icup) {
+      nvicDisableVector(STM32_TIM16_NUMBER);
+      rccDisableTIM16(FALSE);
+    }
+#endif
+#if STM32_ICU_USE_TIM17
+    if (&ICUD17 == icup) {
+      nvicDisableVector(STM32_TIM17_NUMBER);
+      rccDisableTIM17(FALSE);
+    }
+#endif
+#if STM32_ICU_USE_TIM19
+    if (&ICUD19 == icup) {
+      nvicDisableVector(STM32_TIM19_NUMBER);
+      rccDisableTIM19(FALSE);
     }
 #endif
   }

@@ -541,7 +541,7 @@ typedef struct
   __IO uint32_t AFR[2];       /*!< GPIO alternate function low register,                Address offset: 0x20-0x24 */
   __IO uint16_t BRR;          /*!< GPIO bit reset register,                                  Address offset: 0x28 */
   uint16_t RESERVED3;         /*!< Reserved,                                                                 0x2A */
-}GPIO_TypeDef;
+} GPIO_TypeDef;
 #endif
 
 /** 
