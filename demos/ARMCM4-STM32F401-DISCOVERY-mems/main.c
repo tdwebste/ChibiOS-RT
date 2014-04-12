@@ -16,9 +16,11 @@
 
 #include "ch.h"
 #include "hal.h"
+#include "test.h"
 
 #include "chprintf.h"
 #include "shell.h"
+#include "l3gd20.h"
 
 #include "usbcfg.h"
 
@@ -31,6 +33,7 @@ SerialUSBDriver SDU1;
 
 #define SHELL_WA_SIZE   THD_WA_SIZE(2048)
 #define TEST_WA_SIZE    THD_WA_SIZE(256)
+
 
 static void cmd_mem(BaseSequentialStream *chp, int argc, char *argv[]) {
   size_t n, size;
@@ -66,9 +69,28 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[]) {
   } while (tp != NULL);
 }
 
+
+static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[]) {
+  Thread *tp;
+
+  (void)argv;
+  if (argc > 0) {
+    chprintf(chp, "Usage: test\r\n");
+    return;
+  }
+  tp = chThdCreateFromHeap(NULL, TEST_WA_SIZE, chThdGetPriority(),
+                           TestThread, chp);
+  if (tp == NULL) {
+    chprintf(chp, "out of memory\r\n");
+    return;
+  }
+  chThdWait(tp);
+}
+
 static const ShellCommand commands[] = {
   {"mem", cmd_mem},
   {"threads", cmd_threads},
+  {"test", cmd_test},
   {NULL, NULL}
 };
 
@@ -77,48 +99,128 @@ static const ShellConfig shell_cfg1 = {
   commands
 };
 
+/*===========================================================================*/
+/* Accelerometer related.                                                    */
+/*===========================================================================*/
+
+
+
+
+
+
+static uint8_t ctrl_reg_values_buffer[14];
+static uint8_t ctrl_reg1_config=0x0F;
+static int16_t tmp_x[4],tmp_y[4],tmp_z[4];
+static int16_t x_value[60],y_value[60],z_value[60];
+unsigned i=0,j,lednumb;
+static msg_t message=0;
+
+
 /*
- * Blinker thread
- */
-static WORKING_AREA(waThread1, 256);
+*Configuration @ max frequency according to MEMS
+*Configuration (9 MHz, CPHA=1, CPOL=1, MSb first, 8bit word).
+*/
+static const SPIConfig std_spicfg = {
+  NULL,
+  GPIOE,                                                        /*  port of CS*/
+  GPIOE_SPI1_CS,                                                /*   pin of CS*/
+  SPI_CR1_BR_0|SPI_CR1_CPOL|SPI_CR1_CPHA,                       /*CR1 register*/
+  SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0                    /*CR2 register*/
+};
 
-static msg_t Thread1(void *arg) {
 
+/*
+* This Thread reads values from more than one register.
+*/
+static msg_t SPID1_Thread(void *arg) {
   (void)arg;
-  chRegSetThreadName("thread1");
+  chRegSetThreadName ("SPI Drive 1 thread");
+  while (TRUE){
 
-  while (TRUE) {
-    palSetPad(GPIOD, GPIOD_LED3);
-    chThdSleepMilliseconds(200);
-    palSetPad(GPIOD, GPIOD_LED4);
-    chThdSleepMilliseconds(200);
-    palSetPad(GPIOD, GPIOD_LED5);
-    chThdSleepMilliseconds(200);
-    palSetPad(GPIOD, GPIOD_LED6);
-    chThdSleepMilliseconds(200);
 
-    palClearPad(GPIOD, GPIOD_LED6);
-    chThdSleepMilliseconds(200);
-    palClearPad(GPIOD, GPIOD_LED5);
-    chThdSleepMilliseconds(200);
-    palClearPad(GPIOD, GPIOD_LED4);
-    chThdSleepMilliseconds(200);
-    palClearPad(GPIOD, GPIOD_LED3);
-    chThdSleepMilliseconds(200);
+    /*
+     * Cyclic implementation of data buffer
+     */
+    if (i==60){
+      i=0;
+    }
+
+
+    /*
+     * SPI bus acquiring and configuring
+     */
+    spiAcquireBus(&SPID1);
+    spiStart(&SPID1, &std_spicfg);
+
+
+    /*
+     * Configuration of control register number 1 of L3GD20
+     */
+    l3gd20WriteRegister(&SPID1, L3GD20_SPI_AD_CTRL_REG1, ctrl_reg1_config);
+
+
+    /*
+     * Sequential read of all registers not reserved
+     */
+    for(j=0;j<14;j++){
+      ctrl_reg_values_buffer[j]=l3gd20ReadRegister(&SPID1, L3GD20_SPI_AD_CTRL_REG1+j);
+    }
+    lednumb=8;
+
+
+    /*
+     * Reading of values from axis registers. This cycle reads 4 values per axis
+     * in 1 second and puts they in a bi-dimensional buffer. It also turns on two LEDs for
+     * each set of three values (one per axis) captured.
+     */
+    for(j=0;j<4;j++){
+      tmp_x[j]=l3gd20ReadAxis (&SPID1, L3GD20_SPI_AD_OUT_X_L);
+      tmp_y[j]=l3gd20ReadAxis (&SPID1, L3GD20_SPI_AD_OUT_Y_L);
+      tmp_z[j]=l3gd20ReadAxis (&SPID1, L3GD20_SPI_AD_OUT_Z_L);
+      palSetPad(GPIOE,lednumb);
+      palSetPad(GPIOE,lednumb+4);
+      chThdSleepMilliseconds(250);
+      lednumb++;
+    }
+
+
+    /*
+     * Turning off all LEDs
+     */
+    for(lednumb=8;lednumb<16;lednumb++){
+      palClearPad(GPIOE,lednumb);
+    }
+
+
+    /*
+     * Releasing SPI bus
+     */
+    spiReleaseBus (&SPID1);
+
+
+    /*
+     * Calculating the average from values previously acquired
+     */
+    x_value[i]=(tmp_x[0] + tmp_x[1] + tmp_x[2] + tmp_x[3])/4;
+    y_value[i]=(tmp_y[0] + tmp_y[1] + tmp_y[2] + tmp_y[3])/4;
+    z_value[i]=(tmp_z[0] + tmp_z[1] + tmp_z[2] + tmp_z[3])/4;
+    i++;
   }
-
-  return RDY_OK;
+  return message;
 }
 
-/*===========================================================================*/
-/* Initialization and main thread.                                           */
-/*===========================================================================*/
 
 /*
- * Application entry point.
- */
+* Declaration of the working areas of threads
+*/
+static WORKING_AREA(waSPID1_Thread, 512);
+
+
+/*
+* Application entry point.
+*/
 int main(void) {
-  Thread *shelltp = NULL;
+
 
   /*
    * System initializations.
@@ -130,52 +232,32 @@ int main(void) {
   halInit();
   chSysInit();
 
-  /*
-   * Shell manager initialization.
-   */
-  shellInit();
 
   /*
-   * Initializes a serial-over-USB CDC driver.
+   * SPID1 I/O pins setup.(It bypasses board.h configurations)
    */
-  sduObjectInit(&SDU1);
-  sduStart(&SDU1, &serusbcfg);
+  palSetPadMode(GPIOA, GPIOA_SPI1_SCK ,
+                PAL_MODE_ALTERNATE(5)|PAL_STM32_OSPEED_HIGHEST);   /* New SCK */
+  palSetPadMode(GPIOA, GPIOA_SPI1_MISO ,
+                PAL_MODE_ALTERNATE(5)|PAL_STM32_OSPEED_HIGHEST);   /* New MISO*/
+  palSetPadMode(GPIOA, GPIOA_SPI1_MOSI ,
+                PAL_MODE_ALTERNATE(5)|PAL_STM32_OSPEED_HIGHEST);   /* New MOSI*/
+  palSetPadMode(GPIOE, GPIOE_SPI1_CS ,
+                PAL_MODE_OUTPUT_PUSHPULL|PAL_STM32_OSPEED_HIGHEST);/* New CS  */
+
 
   /*
-   * Activates the USB driver and then the USB bus pull-up on D+.
-   * Note, a delay is inserted in order to not have to disconnect the cable
-   * after a reset.
+   * Starting the transmitter-receiver thread.
    */
-  usbDisconnectBus(serusbcfg.usbp);
-  chThdSleepMilliseconds(1000);
-  usbStart(serusbcfg.usbp, &usbcfg);
-  usbConnectBus(serusbcfg.usbp);
+  chThdCreateStatic(waSPID1_Thread, sizeof(waSPID1_Thread),
+                    NORMALPRIO+1, SPID1_Thread, NULL);
+
 
   /*
-   * Creates the example thread.
-   */
-  chThdCreateStatic(waThread1, sizeof(waThread1),
-                    NORMALPRIO + 10, Thread1, NULL);
-
-  /*
-   * Normal main() thread activity, in this demo it just performs
-   * a shell respawn upon its termination.
+   * Normal main() thread activity, in this demo it does nothing.
    */
   while (TRUE) {
-    if (!shelltp) {
-      if (SDU1.config->usbp->state == USB_ACTIVE) {
-        /* Spawns a new shell.*/
-        shelltp = shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
-      }
-    }
-    else {
-      /* If the previous shell exited.*/
-      if (chThdTerminated(shelltp)) {
-        /* Recovers memory of the previous shell.*/
-        chThdRelease(shelltp);
-        shelltp = NULL;
-      }
-    }
     chThdSleepMilliseconds(500);
   }
+  return 0;
 }
