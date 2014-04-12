@@ -162,13 +162,15 @@ static const SPIConfig spi2cfg = {
   0
 };
 
+int g_x, g_y, g_z;
+
 /*
  * This is a periodic thread that reads accelerometer and outputs
  * result to SPI2 and PWM.
  */
 static WORKING_AREA(waThread1, 128);
 static msg_t Thread1(void *arg) {
-  static int8_t xbuf[4], ybuf[4];   /* Last accelerometer data.*/
+  static int8_t xbuf[4], ybuf[4], zbuf[4];   /* Last accelerometer data.*/
   systime_t time;                   /* Next deadline.*/
 
   (void)arg;
@@ -182,23 +184,26 @@ static msg_t Thread1(void *arg) {
   /* Reader thread loop.*/
   time = chTimeNow();
   while (TRUE) {
-    int32_t x, y;
+    int32_t x, y, z;
     unsigned i;
 
     /* Keeping an history of the latest four accelerometer readings.*/
     for (i = 3; i > 0; i--) {
       xbuf[i] = xbuf[i - 1];
       ybuf[i] = ybuf[i - 1];
+      zbuf[i] = zbuf[i - 1];
     }
 
     /* Reading MEMS accelerometer X and Y registers.*/
     xbuf[0] = (int8_t)lis302dlReadRegister(&SPID1, LIS302DL_OUTX);
     ybuf[0] = (int8_t)lis302dlReadRegister(&SPID1, LIS302DL_OUTY);
+    zbuf[0] = (int8_t)lis302dlReadRegister(&SPID1, LIS302DL_OUTZ);
 
     /* Transmitting accelerometer the data over SPI2.*/
     spiSelect(&SPID2);
     spiSend(&SPID2, 4, xbuf);
     spiSend(&SPID2, 4, ybuf);
+    spiSend(&SPID2, 4, zbuf);
     spiUnselect(&SPID2);
 
     /* Calculating average of the latest four accelerometer readings.*/
@@ -206,6 +211,8 @@ static msg_t Thread1(void *arg) {
          (int32_t)xbuf[2] + (int32_t)xbuf[3]) / 4;
     y = ((int32_t)ybuf[0] + (int32_t)ybuf[1] +
          (int32_t)ybuf[2] + (int32_t)ybuf[3]) / 4;
+    z = ((int32_t)zbuf[0] + (int32_t)zbuf[1] +
+         (int32_t)zbuf[2] + (int32_t)zbuf[3]) / 4;
 
     /* Reprogramming the four PWM channels using the accelerometer data.*/
     if (y < 0) {
@@ -225,10 +232,12 @@ static msg_t Thread1(void *arg) {
       pwmEnableChannel(&PWMD4, 1, (pwmcnt_t)0);
     }
 
-    chprintf( (BaseSequentialStream *)&SDU1, "%d %d\r\n", x, y);
+    g_x = x;
+    g_y = y;
+    g_z = z;
 
     /* Waiting until the next 250 milliseconds time interval.*/
-    chThdSleepUntil(time += MS2ST(200));
+    chThdSleepUntil(time += MS2ST(10));
   }
 }
 
@@ -324,20 +333,24 @@ int main(void) {
    * a shell respawn upon its termination.
    */
   while (TRUE) {
+      /*
     if (!shelltp) {
       if (SDU1.config->usbp->state == USB_ACTIVE) {
-        /* Spawns a new shell.*/
+        // Spawns a new shell.
         shelltp = shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
       }
     }
     else {
-      /* If the previous shell exited.*/
+      // If the previous shell exited.
       if (chThdTerminated(shelltp)) {
-        /* Recovers memory of the previous shell.*/
+        // Recovers memory of the previous shell.
         chThdRelease(shelltp);
         shelltp = NULL;
       }
     }
+    */
+    chprintf( (BaseSequentialStream *)&SDU1, "%d %d %d\r\n", g_x, g_y, g_z);
+
     chThdSleepMilliseconds(500);
   }
 }
