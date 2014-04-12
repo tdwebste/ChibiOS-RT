@@ -34,6 +34,20 @@ SerialUSBDriver SDU1;
 #define SHELL_WA_SIZE   THD_WA_SIZE(2048)
 #define TEST_WA_SIZE    THD_WA_SIZE(256)
 
+static void cmd_data(BaseSequentialStream *chp, int argc, char *argv[]) {
+  size_t n, size;
+
+  (void)argv;
+  if (argc > 0) {
+    chprintf(chp, "Usage: data\r\n");
+    return;
+  }
+  n = chHeapStatus(NULL, &size);
+  chprintf(chp, "core free memory : %u bytes\r\n", chCoreStatus());
+  chprintf(chp, "heap fragments   : %u\r\n", n);
+  chprintf(chp, "heap free total  : %u bytes\r\n", size);
+}
+
 static void cmd_mem(BaseSequentialStream *chp, int argc, char *argv[]) {
   size_t n, size;
 
@@ -86,6 +100,7 @@ static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[]) {
 }
 
 static const ShellCommand commands[] = {
+  {"mem", cmd_data},
   {"mem", cmd_mem},
   {"threads", cmd_threads},
   {"test", cmd_test},
@@ -210,8 +225,10 @@ static msg_t Thread1(void *arg) {
       pwmEnableChannel(&PWMD4, 1, (pwmcnt_t)0);
     }
 
+    chprintf( (BaseSequentialStream *)&SDU1, "%d %d\r\n", x, y);
+
     /* Waiting until the next 250 milliseconds time interval.*/
-    chThdSleepUntil(time += MS2ST(100));
+    chThdSleepUntil(time += MS2ST(200));
   }
 }
 
