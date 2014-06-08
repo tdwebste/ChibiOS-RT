@@ -19,95 +19,37 @@
 */
 
 /**
- * @file    hal.h
- * @brief   HAL subsystem header.
+ * @file    ARM/chcore.c
+ * @brief   ARM port code.
  *
- * @addtogroup HAL
+ * @addtogroup ARM_CORE
  * @{
  */
 
-#ifndef _HAL_H_
-#define _HAL_H_
-
-#include "osal.h"
-#include "board.h"
-#include "halconf.h"
-
-#include "hal_lld.h"
-
-/* Abstract interfaces.*/
-#include "hal_streams.h"
-#include "hal_channels.h"
-#include "hal_ioblock.h"
-#include "hal_mmcsd.h"
-
-/* Shared headers.*/
-#include "hal_queues.h"
-
-/* Normal drivers.*/
-#include "pal.h"
-#include "adc.h"
-#include "can.h"
-#include "dac.h"
-#include "ext.h"
-#include "gpt.h"
-#include "i2c.h"
-#include "i2s.h"
-#include "icu.h"
-//#include "mac.h"
-#include "pwm.h"
-#include "rtc.h"
-#include "serial.h"
-#include "sdc.h"
-#include "spi.h"
-#include "st.h"
-#include "uart.h"
-#include "usb.h"
-
-/* Complex drivers.*/
-#include "mmc_spi.h"
-#include "serial_usb.h"
+#include "ch.h"
 
 /*===========================================================================*/
-/* Driver constants.                                                         */
-/*===========================================================================*/
-
-/**
- * @name    Return codes
- * @{
- */
-#define HAL_SUCCESS                         false
-#define HAL_FAILED                          true
-/** @} */
-
-/*===========================================================================*/
-/* Driver pre-compile time settings.                                         */
+/* Module local definitions.                                                 */
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* Derived constants and error checks.                                       */
+/* Module exported variables.                                                */
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* Driver data structures and types.                                         */
+/* Module local types.                                                       */
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* Driver macros.                                                            */
+/* Module local variables.                                                   */
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* External declarations.                                                    */
+/* Module local functions.                                                   */
 /*===========================================================================*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void halInit(void);
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* _HAL_H_ */
+/*===========================================================================*/
+/* Module exported functions.                                                */
+/*===========================================================================*/
 
 /** @} */

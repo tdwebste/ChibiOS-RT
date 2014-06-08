@@ -19,69 +19,25 @@
 */
 
 /**
- * @file    hal.h
- * @brief   HAL subsystem header.
+ * @file    chcore_timer.h
+ * @brief   System timer header file.
  *
- * @addtogroup HAL
+ * @addtogroup ARM_TIMER
  * @{
  */
 
-#ifndef _HAL_H_
-#define _HAL_H_
+#ifndef _CHCORE_TIMER_H_
+#define _CHCORE_TIMER_H_
 
-#include "osal.h"
-#include "board.h"
-#include "halconf.h"
-
-#include "hal_lld.h"
-
-/* Abstract interfaces.*/
-#include "hal_streams.h"
-#include "hal_channels.h"
-#include "hal_ioblock.h"
-#include "hal_mmcsd.h"
-
-/* Shared headers.*/
-#include "hal_queues.h"
-
-/* Normal drivers.*/
-#include "pal.h"
-#include "adc.h"
-#include "can.h"
-#include "dac.h"
-#include "ext.h"
-#include "gpt.h"
-#include "i2c.h"
-#include "i2s.h"
-#include "icu.h"
-//#include "mac.h"
-#include "pwm.h"
-#include "rtc.h"
-#include "serial.h"
-#include "sdc.h"
-#include "spi.h"
+/* This is the only header in the HAL designed to be include-able alone.*/
 #include "st.h"
-#include "uart.h"
-#include "usb.h"
-
-/* Complex drivers.*/
-#include "mmc_spi.h"
-#include "serial_usb.h"
 
 /*===========================================================================*/
-/* Driver constants.                                                         */
+/* Module constants.                                                         */
 /*===========================================================================*/
 
-/**
- * @name    Return codes
- * @{
- */
-#define HAL_SUCCESS                         false
-#define HAL_FAILED                          true
-/** @} */
-
 /*===========================================================================*/
-/* Driver pre-compile time settings.                                         */
+/* Module pre-compile time settings.                                         */
 /*===========================================================================*/
 
 /*===========================================================================*/
@@ -89,25 +45,81 @@
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* Driver data structures and types.                                         */
+/* Module data structures and types.                                         */
 /*===========================================================================*/
 
 /*===========================================================================*/
-/* Driver macros.                                                            */
+/* Module macros.                                                            */
 /*===========================================================================*/
 
 /*===========================================================================*/
 /* External declarations.                                                    */
 /*===========================================================================*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void halInit(void);
-#ifdef __cplusplus
-}
-#endif
+/*===========================================================================*/
+/* Module inline functions.                                                  */
+/*===========================================================================*/
 
-#endif /* _HAL_H_ */
+/**
+ * @brief   Starts the alarm.
+ * @note    Makes sure that no spurious alarms are triggered after
+ *          this call.
+ *
+ * @param[in] time      the time to be set for the first alarm
+ *
+ * @notapi
+ */
+static inline void port_timer_start_alarm(systime_t time) {
+
+  stStartAlarm(time);
+}
+
+/**
+ * @brief   Stops the alarm interrupt.
+ *
+ * @notapi
+ */
+static inline void port_timer_stop_alarm(void) {
+
+  stStopAlarm();
+}
+
+/**
+ * @brief   Sets the alarm time.
+ *
+ * @param[in] time      the time to be set for the next alarm
+ *
+ * @notapi
+ */
+static inline void port_timer_set_alarm(systime_t time) {
+
+  stSetAlarm(time);
+}
+
+/**
+ * @brief   Returns the system time.
+ *
+ * @return              The system time.
+ *
+ * @notapi
+ */
+static inline systime_t port_timer_get_time(void) {
+
+  return stGetCounter();
+}
+
+/**
+ * @brief   Returns the current alarm time.
+ *
+ * @return              The currently set alarm time.
+ *
+ * @notapi
+ */
+static inline systime_t port_timer_get_alarm(void) {
+
+  return stGetAlarm();
+}
+
+#endif /* _CHCORE_TIMER_H_ */
 
 /** @} */
